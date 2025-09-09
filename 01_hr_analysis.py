@@ -2,74 +2,16 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import matplotlib as mpl
-from matplotlib import font_manager
-import os
 
 st.set_page_config(page_title="업무만족도 대시보드", layout="wide")
+sns.set(style="whitegrid", font="Malgun Gothic")
 
-# 0) Seaborn 테마 먼저 설정 (폰트 지정 없이)
-sns.set_theme(style="whitegrid")
-
-# 1) 한글 폰트 경로 지정 (윈도우 맑은고딕)
-FONT_PATH = r"C:\Windows\Fonts\malgun.ttf"
-if not os.path.exists(FONT_PATH):
-    st.error(f"폰트 파일을 찾을 수 없습니다: {FONT_PATH}")
-else:
-    # 폰트 추가 및 캐시 재빌드
-    font_manager.fontManager.addfont(FONT_PATH)
-    try:
-        # 최신 Matplotlib(>=3.7권장) 캐시 재로드
-        font_manager._load_fontmanager(try_read_cache=False)
-    except Exception:
-        # 구버전 호환
-        try:
-            font_manager._rebuild()
-        except Exception:
-            pass
-
-    fam = font_manager.FontProperties(fname=FONT_PATH).get_name() or "Malgun Gothic"
-
-    # 2) matplotlib에 'family'와 'sans-serif'를 함께 지정 (Seaborn이 덮어쓴 경우까지 방지)
-    mpl.rcParams.update({
-        "font.family": fam,
-        "font.sans-serif": [fam, "Malgun Gothic", "NanumGothic", "Noto Sans KR"],
-        "axes.unicode_minus": False,
-    })
-
-# (선택) 적용 폰트 확인
-st.caption(f"🖋 Matplotlib 적용 폰트: **{mpl.rcParams['font.family']}** / sans-serif: **{mpl.rcParams['font.sans-serif']}**")
-
-
-# ----------------------------
-# 2) CSV 인코딩 자동 복원 로더 (utf-8-sig ↔ cp949)
-# ----------------------------
+# 데이터 로드
 @st.cache_data
 def load_df(path="HR Data.csv"):
-    # 1차: UTF-8-SIG
-    try:
-        return pd.read_csv(path, encoding="utf-8-sig")
-    except Exception:
-        pass
-    # 2차: CP949(윈도우)
-    try:
-        return pd.read_csv(path, encoding="cp949")
-    except Exception:
-        pass
-    # 3차: UTF-8 일반
-    try:
-        return pd.read_csv(path, encoding="utf-8")
-    except Exception as e:
-        st.error(f"CSV 읽기 실패: {e}")
-        return pd.DataFrame()
+    return pd.read_csv(path, encoding="utf-8-sig")
 
 df = load_df()
-
-# 한글이 실제로 보이는지 바로 확인(인코딩/폰트 둘 다 점검)
-st.write("한글 테스트: 부서 / 업무만족도 / 야근정도 ✅")
-
-# +++ 여긴 기존 KPI/그래프 코드 그대로 두세요 +++
-
 
 # ===== KPI =====
 st.title("업무만족도 분석 대시보드")
